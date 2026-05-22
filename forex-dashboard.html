@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forex Trading Analysis Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            color: #1e3c72;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .card h2 {
+            color: #1e3c72;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            border-bottom: 3px solid #2a5298;
+            padding-bottom: 10px;
+        }
+
+        .currency-pair {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: #f5f5f5;
+            border-radius: 10px;
+            border-left: 4px solid #2a5298;
+        }
+
+        .pair-name {
+            font-weight: bold;
+            font-size: 1.1em;
+            color: #1e3c72;
+        }
+
+        .pair-value {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2a5298;
+        }
+
+        .change {
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .change.positive {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .change.negative {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .analysis-section {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            margin-bottom: 25px;
+        }
+
+        .analysis-section h2 {
+            color: #1e3c72;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 300px;
+            margin-bottom: 20px;
+            background: #f9f9f9;
+            border-radius: 10px;
+            padding: 15px;
+            position: relative;
+        }
+
+        canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 1.8em;
+            font-weight: bold;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #1e3c72;
+            font-weight: bold;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #2a5298;
+        }
+
+        button {
+            background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(42, 82, 152, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .strategy-card {
+            background: #f0f4f8;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #2a5298;
+        }
+
+        .strategy-card h3 {
+            color: #1e3c72;
+            margin-bottom: 8px;
+        }
+
+        .strategy-card p {
+            color: #666;
+            font-size: 0.95em;
+            line-height: 1.5;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .alert.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border-left: 4px solid #17a2b8;
+        }
+
+        .alert.warning {
+            background: #fff3cd;
+            color: #856404;
+            border-left: 4px solid #ffc107;
+        }
+
+        .alert.success {
+            background: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+
+        footer {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            color: #666;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📈 Forex Trading Analysis Dashboard</h1>
+            <p class="subtitle">Real-time Forex Market Analysis & Trading Strategies</p>
+        </header>
+
+        <!-- Live Rates Section -->
+        <div class="dashboard">
+            <div class="card">
+                <h2>💱 Live Currency Pairs</h2>
+                <div class="currency-pair">
+                    <span class="pair-name">EUR/USD</span>
+                    <span class="pair-value">1.0950</span>
+                    <span class="change positive">+0.25%</span>
+                </div>
+                <div class="currency-pair">
+                    <span class="pair-name">GBP/USD</span>
+                    <span class="pair-value">1.2680</span>
+                    <span class="change positive">+0.18%</span>
+                </div>
+                <div class="currency-pair">
+                    <span class="pair-name">USD/JPY</span>
+                    <span class="pair-value">110.45</span>
+                    <span class="change negative">-0.32%</span>
+                </div>
+                <div class="currency-pair">
+                    <span class="pair-name">AUD/USD</span>
+                    <span class="pair-value">0.7120</span>
+                    <span class="change positive">+0.42%</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>📊 Market Indicators</h2>
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-label">RSI (14)</div>
+                        <div class="stat-value">65.32</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">MACD</div>
+                        <div class="stat-value">+0.35</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Stoch K</div>
+                        <div class="stat-value">78.50</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">BB Width</div>
+                        <div class="stat-value">245 pips</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>⏱️ Market Hours</h2>
+                <div class="currency-pair">
+                    <span class="pair-name">🇬🇧 London</span>
+                    <span class="pair-value">Open</span>
+                </div>
+                <div class="currency-pair">
+                    <span class="pair-name">🇺🇸 New York</span>
+                    <span class="pair-value">Open</span>
+                </div>
+                <div class="currency-pair">
+                    <span class="pair-name">🇯🇵 Tokyo</span>
+                    <span class="pair-value">Closed</span>
+                </div>
+                <div class="currency-pair">
+                    <span class="pair-name">🇸🇬 Singapore</span>
+                    <span class="pair-value">Closed</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analysis Section -->
+        <div class="analysis-section">
+            <h2>📈 Technical Analysis Chart</h2>
+            <div class="chart-container">
+                <canvas id="analysisChart"></canvas>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-label">Trend</div>
+                    <div class="stat-value">BULLISH ↗</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Support</div>
+                    <div class="stat-value">1.0920</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Resistance</div>
+                    <div class="stat-value">1.0980</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Volatility</div>
+                    <div class="stat-value">Medium</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trading Strategies -->
+        <div class="analysis-section">
+            <h2>🎯 Trading Strategies</h2>
+            
+            <div class="alert info">
+                <strong>ℹ️ Market Insight:</strong> The EUR/USD pair shows a bullish pattern with strong support at 1.0920. Consider long positions with proper risk management.
+            </div>
+
+            <div class="strategy-card">
+                <h3>1. Moving Average Crossover Strategy</h3>
+                <p><strong>Signal:</strong> BUY | <strong>Confidence:</strong> 78%</p>
+                <p>The 50-day MA has crossed above the 200-day MA, indicating a bullish trend. Entry point: Current price | Stop Loss: 1.0900 | Take Profit: 1.1050</p>
+            </div>
+
+            <div class="strategy-card">
+                <h3>2. RSI Overbought/Oversold</h3>
+                <p><strong>Signal:</strong> NEUTRAL | <strong>Confidence:</strong> 62%</p>
+                <p>RSI is at 65.32, approaching overbought territory (70). Wait for pullback to 40-50 zone for better entry.</p>
+            </div>
+
+            <div class="strategy-card">
+                <h3>3. Support & Resistance Levels</h3>
+                <p><strong>Signal:</strong> BUY | <strong>Confidence:</strong> 85%</p>
+                <p>Strong support at 1.0920 with multiple touches. Price bounced off support 3 times in the last week. Excellent risk/reward ratio available.</p>
+            </div>
+
+            <div class="alert warning">
+                <strong>⚠️ Risk Warning:</strong> Always use stop losses and proper position sizing. Never risk more than 2% of your account per trade.
+            </div>
+        </div>
+
+        <!-- Trading Calculator -->
+        <div class="analysis-section">
+            <h2>🧮 Position Size Calculator</h2>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                <div>
+                    <div class="input-group">
+                        <label for="accountBalance">Account Balance ($)</label>
+                        <input type="number" id="accountBalance" placeholder="10000" value="10000">
+                    </div>
+
+                    <div class="input-group">
+                        <label for="riskPercent">Risk Percentage (%)</label>
+                        <input type="number" id="riskPercent" placeholder="2" value="2" step="0.5" max="5">
+                    </div>
+
+                    <div class="input-group">
+                        <label for="stopLossPips">Stop Loss (Pips)</label>
+                        <input type="number" id="stopLossPips" placeholder="30" value="30">
+                    </div>
+
+                    <button onclick="calculatePosition()">Calculate Position</button>
+                </div>
+
+                <div>
+                    <div class="alert success" id="calculationResult" style="display: none;">
+                        <p id="resultText"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Economic Calendar -->
+        <div class="analysis-section">
+            <h2>📅 Economic Calendar</h2>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">
+                <div class="strategy-card">
+                    <h3>🇺🇸 US Fed Decision</h3>
+                    <p><strong>Time:</strong> Today, 19:00 UTC</p>
+                    <p><strong>Impact:</strong> HIGH | <strong>Forecast:</strong> No Change (4.50%)</p>
+                </div>
+
+                <div class="strategy-card">
+                    <h3>🇪🇺 ECB Interest Rate</h3>
+                    <p><strong>Time:</strong> Tomorrow, 12:45 UTC</p>
+                    <p><strong>Impact:</strong> MEDIUM | <strong>Forecast:</strong> -0.50%</p>
+                </div>
+
+                <div class="strategy-card">
+                    <h3>🇬🇧 UK Inflation Rate</h3>
+                    <p><strong>Time:</strong> In 2 days, 10:00 UTC</p>
+                    <p><strong>Impact:</strong> HIGH | <strong>Forecast:</strong> +2.4%</p>
+                </div>
+
+                <div class="strategy-card">
+                    <h3>🇯🇵 Japan GDP</h3>
+                    <p><strong>Time:</strong> In 3 days, 23:50 UTC</p>
+                    <p><strong>Impact:</strong> HIGH | <strong>Forecast:</strong> -0.1% QoQ</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Key Tips -->
+        <div class="analysis-section" style="background: linear-gradient(135deg, rgba(42, 82, 152, 0.1), rgba(30, 60, 114, 0.1));">
+            <h2>💡 Pro Trading Tips</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">
+                <div class="strategy-card">
+                    <h3>✅ Tip #1: Risk Management</h3>
+                    <p>Never risk more than 2% of your account per trade. This is the golden rule of trading success.</p>
+                </div>
+
+                <div class="strategy-card">
+                    <h3>✅ Tip #2: Trend Following</h3>
+                    <p>Trade in the direction of the main trend. Use moving averages to identify the trend direction.</p>
+                </div>
+
+                <div class="strategy-card">
+                    <h3>✅ Tip #3: News Trading</h3>
+                    <p>Monitor economic calendars. Major news events can create volatility and trading opportunities.</p>
+                </div>
+
+                <div class="strategy-card">
+                    <h3>✅ Tip #4: Technical Levels</h3>
+                    <p>Identify key support and resistance levels. Price tends to bounce or break these levels.</p>
+                </div>
+
+                <div class="strategy-card">
+                    <h3>✅ Tip #5: Patience</h3>
+                    <p>Wait for high-probability setups. Not every trade needs to be taken. Quality over quantity.</p>
+                </div>
+
+                <div class="strategy-card">
+                    <h3>✅ Tip #6: Journal Trading</h3>
+                    <p>Keep a trading journal to track your trades and improve your strategy over time.</p>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>© 2024 Forex Trading Analysis Dashboard | Powered by Gemini AI Bot</p>
+            <p style="margin-top: 10px; font-size: 0.9em; color: #999;">⚠️ This dashboard is for educational purposes only. Not financial advice. Always consult a professional advisor.</p>
+        </footer>
+    </div>
+
+    <script>
+        // Position Size Calculator
+        function calculatePosition() {
+            const accountBalance = parseFloat(document.getElementById('accountBalance').value);
+            const riskPercent = parseFloat(document.getElementById('riskPercent').value);
+            const stopLossPips = parseFloat(document.getElementById('stopLossPips').value);
+
+            if (!accountBalance || !riskPercent || !stopLossPips) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            const riskAmount = (accountBalance * riskPercent) / 100;
+            const pipsValue = riskAmount / stopLossPips;
+            const lotSize = (pipsValue / 10).toFixed(2);
+
+            const resultDiv = document.getElementById('calculationResult');
+            const resultText = document.getElementById('resultText');
+
+            resultText.innerHTML = `
+                <strong>Position Calculation Results:</strong><br>
+                Risk Amount: $${riskAmount.toFixed(2)}<br>
+                Position Size: ${lotSize} Lots<br>
+                Per Pip Value: $${pipsValue.toFixed(2)}<br>
+                <em style="font-size: 0.9em;">If price moves 10 pips against you, you lose $${riskAmount.toFixed(2)}</em>
+            `;
+
+            resultDiv.style.display = 'block';
+        }
+
+        // Chart.js for technical analysis
+        if (document.getElementById('analysisChart')) {
+            const canvas = document.getElementById('analysisChart');
+            const ctx = canvas.getContext('2d');
+
+            // Simple price chart
+            const priceData = [1.0920, 1.0935, 1.0928, 1.0945, 1.0958, 1.0950, 1.0965, 1.0975, 1.0968, 1.0980];
+            const labels = ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7', 'Day 8', 'Day 9', 'Day 10'];
+
+            // Draw grid
+            ctx.strokeStyle = '#ddd';
+            ctx.lineWidth = 1;
+
+            const width = canvas.width;
+            const height = canvas.height;
+            const padding = 40;
+
+            // Grid lines
+            for (let i = 0; i <= 10; i++) {
+                const y = padding + (height - padding * 2) * (i / 10);
+                ctx.beginPath();
+                ctx.moveTo(padding, y);
+                ctx.lineTo(width - padding, y);
+                ctx.stroke();
+            }
+
+            // Draw price line
+            ctx.strokeStyle = '#2a5298';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+
+            const minPrice = Math.min(...priceData);
+            const maxPrice = Math.max(...priceData);
+            const priceRange = maxPrice - minPrice;
+
+            for (let i = 0; i < priceData.length; i++) {
+                const x = padding + (width - padding * 2) * (i / (priceData.length - 1));
+                const y = height - padding - ((priceData[i] - minPrice) / priceRange) * (height - padding * 2);
+
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            ctx.stroke();
+
+            // Draw points
+            ctx.fillStyle = '#1e3c72';
+            for (let i = 0; i < priceData.length; i++) {
+                const x = padding + (width - padding * 2) * (i / (priceData.length - 1));
+                const y = height - padding - ((priceData[i] - minPrice) / priceRange) * (height - padding * 2);
+
+                ctx.beginPath();
+                ctx.arc(x, y, 4, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Labels
+            ctx.fillStyle = '#666';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+
+            for (let i = 0; i < labels.length; i += 2) {
+                const x = padding + (width - padding * 2) * (i / (labels.length - 1));
+                ctx.fillText(labels[i], x, height - 15);
+            }
+        }
+    </script>
+</body>
+</html>
